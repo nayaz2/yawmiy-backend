@@ -5,13 +5,16 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, update: false }) // IMMUTABLE - cannot change after creation
   email: string;
 
   @Column()
   password: string;
 
+  @Column({ unique: true, update: false }) // Locked after registration
+  student_id: string;
+
   @Column()
-  username: string;
+  name: string;
 }
 
