@@ -104,6 +104,187 @@
 					]
 				}
 			}
+		},
+		{
+			"name": "Listings",
+			"item": [
+				{
+					"name": "Browse Listings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/listings?category=Textbooks&price_min=0&price_max=100000&sort=price_asc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"listings"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "Textbooks",
+									"description": "Textbooks, Electronics, Furniture, Clothing, Sports, Stationery, Snacks, Beverages, Other"
+								},
+								{
+									"key": "price_min",
+									"value": "0",
+									"description": "Minimum price in paise"
+								},
+								{
+									"key": "price_max",
+									"value": "100000",
+									"description": "Maximum price in paise (100000 = ₹1000)"
+								},
+								{
+									"key": "condition",
+									"value": "new",
+									"description": "new, like_new, good, fair",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "price_asc",
+									"description": "price_asc, price_desc, date_desc, date_asc"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Listing Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/listings/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"listings",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "YOUR_LISTING_ID_HERE",
+									"description": "UUID of the listing"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Listing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Calculus Textbook - 3rd Edition\",\n  \"category\": \"Textbooks\",\n  \"price\": 50000,\n  \"condition\": \"like_new\",\n  \"description\": \"Excellent condition calculus textbook. Barely used, no highlights or notes.\",\n  \"photos\": [\"https://example.com/photo1.jpg\"],\n  \"location\": \"Main Campus - Building A\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/listings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"listings"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Listing",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 45000,\n  \"description\": \"Updated description - Price reduced!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/listings/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"listings",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "YOUR_LISTING_ID_HERE",
+									"description": "UUID of the listing"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Listing",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/listings/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"listings",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "YOUR_LISTING_ID_HERE",
+									"description": "UUID of the listing"
+								}
+							]
+						}
+					}
+				}
+			]
 		}
 	]
 }
