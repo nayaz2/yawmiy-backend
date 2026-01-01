@@ -285,6 +285,173 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"listing_id\": \"YOUR_LISTING_ID_HERE\",\n  \"meeting_location\": \"Main Campus - Building A\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/orders",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/orders",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Order Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/orders/:order_id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders",
+								":order_id"
+							],
+							"variable": [
+								{
+									"key": "order_id",
+									"value": "YOUR_ORDER_ID_HERE",
+									"description": "UUID of the order"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Initiate PhonePe Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/orders/:order_id/payment",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders",
+								":order_id",
+								"payment"
+							],
+							"variable": [
+								{
+									"key": "order_id",
+									"value": "YOUR_ORDER_ID_HERE",
+									"description": "UUID of the order"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Complete Order",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"meeting_time\": \"2026-01-15T10:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/orders/:order_id/complete",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders",
+								":order_id",
+								"complete"
+							],
+							"variable": [
+								{
+									"key": "order_id",
+									"value": "YOUR_ORDER_ID_HERE",
+									"description": "UUID of the order"
+								}
+							]
+						}
+					}
+				}
+			]
 		}
 	]
 }
