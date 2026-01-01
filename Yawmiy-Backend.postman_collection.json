@@ -21,7 +21,7 @@
 			}
 		},
 		{
-			"name": "Register User",
+			"name": "Register Student",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -32,7 +32,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"username\": \"testuser\"\n}"
+					"raw": "{\n  \"email\": \"student@university.edu\",\n  \"password\": \"Password123!\",\n  \"student_id\": \"12345678\",\n  \"name\": \"John Doe\"\n}"
 				},
 				"url": {
 					"raw": "http://localhost:3000/auth/register",
@@ -60,7 +60,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+					"raw": "{\n  \"email\": \"student@university.edu\",\n  \"password\": \"Password123!\"\n}"
 				},
 				"url": {
 					"raw": "http://localhost:3000/auth/login",
@@ -72,6 +72,35 @@
 					"path": [
 						"auth",
 						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "Validate Token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer YOUR_TOKEN_HERE",
+						"description": "Replace YOUR_TOKEN_HERE with the token from login response"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/auth/validate-token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"validate-token"
 					]
 				}
 			}
