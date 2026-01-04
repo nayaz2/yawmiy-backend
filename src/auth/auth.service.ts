@@ -19,6 +19,12 @@ export class AuthService {
    * @returns Success message
    */
   async register(email: string, password: string, student_id: string, name: string): Promise<{ message: string }> {
+    // Validate email format (must end with .edu, .edu.in, .ac, or .ac.in)
+    const emailPattern = /\.(edu|ac)(\.in)?$/;
+    if (!emailPattern.test(email)) {
+      throw new BadRequestException('Email must end with .edu, .edu.in, .ac, or .ac.in');
+    }
+
     // Check if email already exists
     const existingUserByEmail = await this.usersService.findOne(email);
     if (existingUserByEmail) {
