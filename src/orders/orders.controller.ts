@@ -8,7 +8,6 @@ import {
   UseGuards,
   Request,
   Headers,
-  RawBodyRequest,
   Query,
   Res,
 } from '@nestjs/common';
@@ -215,14 +214,24 @@ export class OrdersController {
 
   /**
    * POST /orders/webhook - PhonePe payment webhook
-   * No authentication (PhonePe calls this)
+   * PhonePe calls this with username/password authentication
    */
   @Post('webhook')
   async handleWebhook(
     @Body() payload: any,
     @Headers('x-verify') signature: string,
+    @Headers('authorization') authorization: string,
   ) {
-    return this.ordersService.handlePhonePaymentWebhook(payload, signature);
+    // Convert payload to string for SDK validation
+    // Note: For production, you may want to configure NestJS to get raw body
+    const rawBody = JSON.stringify(payload);
+    
+    return this.ordersService.handlePhonePaymentWebhook(
+      payload,
+      signature,
+      authorization,
+      rawBody,
+    );
   }
 
   /**

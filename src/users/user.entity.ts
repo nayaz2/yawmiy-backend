@@ -16,5 +16,8 @@ export class User {
 
   @Column()
   name: string;
+
+  @Column({ name: 'recruiter_id', nullable: true })
+  recruiter_id: number; // ID of the scout who recruited this user
 }
 

@@ -450,6 +450,225 @@
 							]
 						}
 					}
+				},
+				{
+					"name": "Test PhonePe Webhook (Success)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "Required"
+							},
+							{
+								"key": "x-verify",
+								"value": "test_signature_123###1",
+								"description": "PhonePe signature header (placeholder for testing)"
+							},
+							{
+								"key": "authorization",
+								"value": "test_auth_header",
+								"description": "Authorization header for SDK validation (placeholder for testing)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"PAYMENT_SUCCESS\",\n  \"message\": \"Payment successful\",\n  \"data\": {\n    \"merchantId\": \"M232G4O6KU7K2_2601012107\",\n    \"merchantTransactionId\": \"YOUR_ORDER_ID_HERE\",\n    \"transactionId\": \"TXN123456789\",\n    \"amount\": 55825,\n    \"state\": \"COMPLETED\",\n    \"responseCode\": \"PAYMENT_SUCCESS\",\n    \"paymentInstrument\": {\n      \"type\": \"UPI\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/orders/webhook",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders",
+								"webhook"
+							]
+						},
+						"description": "Test PhonePe webhook for successful payment. Replace YOUR_ORDER_ID_HERE with actual order_id. This simulates PhonePe sending a webhook after payment success. Order status will change to 'escrowed'."
+					}
+				},
+				{
+					"name": "Test PhonePe Webhook (Failed)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-verify",
+								"value": "test_signature_123###1"
+							},
+							{
+								"key": "authorization",
+								"value": "test_auth_header"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"PAYMENT_FAILED\",\n  \"message\": \"Payment failed\",\n  \"data\": {\n    \"merchantId\": \"M232G4O6KU7K2_2601012107\",\n    \"merchantTransactionId\": \"YOUR_ORDER_ID_HERE\",\n    \"transactionId\": \"TXN123456789\",\n    \"amount\": 55825,\n    \"state\": \"FAILED\",\n    \"responseCode\": \"PAYMENT_FAILED\",\n    \"paymentInstrument\": {\n      \"type\": \"UPI\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/orders/webhook",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"orders",
+								"webhook"
+							]
+						},
+						"description": "Test PhonePe webhook for failed payment. Replace YOUR_ORDER_ID_HERE with actual order_id. Order status will remain 'pending'."
+					}
+				}
+			]
+		},
+		{
+			"name": "Scouts",
+			"item": [
+				{
+					"name": "Register as Scout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login. User must have 1+ completed transactions."
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/scouts/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"scouts",
+								"register"
+							]
+						},
+						"description": "Register as a scout. Requires user to have at least 1 completed transaction (as buyer or seller)."
+					}
+				},
+				{
+					"name": "Get Scout Earnings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/scouts/:scout_id/earnings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"scouts",
+								":scout_id",
+								"earnings"
+							],
+							"variable": [
+								{
+									"key": "scout_id",
+									"value": "YOUR_SCOUT_ID_HERE",
+									"description": "UUID of the scout (from register response)"
+								}
+							]
+						},
+						"description": "Get scout earnings with breakdown. Shows ₹10 per recruit's first sale."
+					}
+				},
+				{
+					"name": "Get Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/scouts/leaderboard?limit=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"scouts",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of top scouts to return (default: 10)"
+								}
+							]
+						},
+						"description": "Get top scouts by earnings. Public endpoint (no authentication required)."
+					}
+				},
+				{
+					"name": "Request Payout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount_paise\": 1000\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/scouts/:scout_id/request-payout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"scouts",
+								":scout_id",
+								"request-payout"
+							],
+							"variable": [
+								{
+									"key": "scout_id",
+									"value": "YOUR_SCOUT_ID_HERE",
+									"description": "UUID of the scout (from register response)"
+								}
+							]
+						},
+						"description": "Request payout. Leave amount_paise empty or omit to request all earnings."
+					}
 				}
 			]
 		}
