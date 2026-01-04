@@ -96,27 +96,52 @@ NODE_ENV=production
 ```
 
 #### PhonePe Configuration
+
+**For Sandbox/Testing:**
 ```
-PHONEPE_MERCHANT_ID=<Your merchant ID>
-PHONEPE_SALT_KEY=<Your salt key>
+PHONEPE_MERCHANT_ID=M232G4O6KU7K2_2601012107
+PHONEPE_SALT_KEY=OWJjZmE2NTItMDA4Yi00YTUxLWJiMjItZmQ2ZjA3MDE5NDI5
 PHONEPE_SALT_INDEX=1
-PHONEPE_BASE_URL=https://api.phonepe.com/apis/pg-sandbox
-APP_BASE_URL=<Your Render service URL>
+PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+APP_BASE_URL=https://yawmiy-backend-xxx.onrender.com
 ```
 
-#### PhonePe SDK
+**For Production:**
 ```
-PHONEPE_CLIENT_ID=<Your client ID>
-PHONEPE_CLIENT_SECRET=<Your client secret>
+PHONEPE_MERCHANT_ID=<Get from PhonePe Production Dashboard>
+PHONEPE_SALT_KEY=<Get from PhonePe Production Dashboard>
+PHONEPE_SALT_INDEX=1
+PHONEPE_BASE_URL=https://api.phonepe.com/apis/pg-sandbox
+APP_BASE_URL=https://yawmiy-backend-xxx.onrender.com
+```
+
+**Note:** Replace `yawmiy-backend-xxx.onrender.com` with your actual Render service URL after deployment.
+
+#### PhonePe SDK
+
+**For Sandbox/Testing:**
+```
+PHONEPE_CLIENT_ID=M232G4O6KU7K2_2601012107
+PHONEPE_CLIENT_SECRET=OWJjZmE2NTItMDA4Yi00YTUxLWJiMjItZmQ2ZjA3MDE5NDI5
+PHONEPE_CLIENT_VERSION=1
+PHONEPE_ENV=SANDBOX
+```
+
+**For Production:**
+```
+PHONEPE_CLIENT_ID=<Get from PhonePe Production Dashboard>
+PHONEPE_CLIENT_SECRET=<Get from PhonePe Production Dashboard>
 PHONEPE_CLIENT_VERSION=1
 PHONEPE_ENV=PRODUCTION
 ```
 
 #### PhonePe Webhook
 ```
-PHONEPE_WEBHOOK_USERNAME=<Your webhook username>
-PHONEPE_WEBHOOK_PASSWORD=<Your webhook password>
+PHONEPE_WEBHOOK_USERNAME=yawmiy_webhook_2026
+PHONEPE_WEBHOOK_PASSWORD=YawmiyWebhook2026
 ```
+
+**Note:** These are the credentials you set in the PhonePe dashboard. Use the same values in both sandbox and production.
 
 ### 4.2 Generate JWT Secret
 

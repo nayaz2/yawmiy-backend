@@ -13,7 +13,7 @@ import { ScoutsModule } from './scouts/scouts.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: '.env', // Optional: also reads from process.env automatically
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
