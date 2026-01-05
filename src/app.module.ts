@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { ListingsModule } from './listings/listings.module';
 import { OrdersModule } from './orders/orders.module';
 import { ScoutsModule } from './scouts/scouts.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ScoutsModule } from './scouts/scouts.module';
     ListingsModule,
     OrdersModule,
     ScoutsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

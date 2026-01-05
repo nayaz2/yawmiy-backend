@@ -671,6 +671,188 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recipient_id\": \"2\",\n  \"content\": \"Hi! Is this item still available?\",\n  \"listing_id\": \"YOUR_LISTING_ID_HERE\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages"
+							]
+						},
+						"description": "Send a message to another user. listing_id and order_id are optional."
+					}
+				},
+				{
+					"name": "Get All Conversations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/messages/conversations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"conversations"
+							]
+						},
+						"description": "Get list of all users you've messaged with, including last message and unread count."
+					}
+				},
+				{
+					"name": "Get Conversation with User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/messages/conversations/:userId?page=1&limit=50",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"conversations",
+								":userId"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Messages per page (default: 50)"
+								},
+								{
+									"key": "listing_id",
+									"value": "",
+									"description": "Filter by listing (optional)",
+									"disabled": true
+								},
+								{
+									"key": "order_id",
+									"value": "",
+									"description": "Filter by order (optional)",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "2",
+									"description": "User ID of the other person in the conversation"
+								}
+							]
+						},
+						"description": "Get conversation history with a specific user. Messages are automatically marked as read when fetched."
+					}
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/messages/unread-count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"unread-count"
+							]
+						},
+						"description": "Get total number of unread messages. Useful for notification badges."
+					}
+				},
+				{
+					"name": "Mark Messages as Read",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_TOKEN_HERE",
+								"description": "JWT token from login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message_ids\": [\"message-uuid-1\", \"message-uuid-2\"]\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages/mark-read",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"mark-read"
+							]
+						},
+						"description": "Manually mark specific messages as read."
+					}
+				}
+			]
 		}
 	]
 }
