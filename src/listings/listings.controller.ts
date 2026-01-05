@@ -21,17 +21,33 @@ export class ListingsController {
   constructor(private readonly listingsService: ListingsService) {}
 
   /**
-   * GET /listings - Browse listings with filters
-   * Query params: category, price_min, price_max, condition, sort
+   * GET /listings - Browse listings with filters, search, and pagination
+   * Query params:
+   *   - search: Text search in title and description
+   *   - category: Single category filter
+   *   - categories: Multiple categories (comma-separated)
+   *   - price_min, price_max: Price range in paise
+   *   - condition: Single condition filter
+   *   - conditions: Multiple conditions (comma-separated)
+   *   - location: Location filter (partial match)
+   *   - sort: price_asc, price_desc, date_asc, date_desc, relevance
+   *   - page: Page number (default: 1)
+   *   - limit: Items per page (default: 20, max: 100)
    */
   @Get()
   async findAll(@Query() queryDto: QueryListingsDto) {
-    const listings = await this.listingsService.findAll(queryDto);
+    const result = await this.listingsService.findAll(queryDto);
+
     // Convert price from paise to rupees for display
-    return listings.map((listing) => ({
+    const listings = result.listings.map((listing) => ({
       ...listing,
       price_display: `₹${(listing.price / 100).toFixed(2)}`,
     }));
+
+    return {
+      ...result,
+      listings,
+    };
   }
 
   /**

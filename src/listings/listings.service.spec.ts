@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ListingsService } from './listings.service';
 import { Listing, ListingStatus, ListingCategory, ListingCondition } from './listing.entity';
 import { CreateListingDto } from './dto/create-listing.dto';
+import { SortOption } from './dto/query-listings.dto';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('ListingsService', () => {
@@ -79,7 +80,7 @@ describe('ListingsService', () => {
         price_min: 10000,
         price_max: 50000,
         condition: ListingCondition.GOOD,
-        sort: 'price_asc' as const,
+        sort: SortOption.PRICE_ASC,
       };
 
       const mockQueryBuilder = {
@@ -87,6 +88,9 @@ describe('ListingsService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(1),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
           {
             id: 'listing-1',
@@ -102,7 +106,8 @@ describe('ListingsService', () => {
 
       const result = await service.findAll(queryDto);
 
-      expect(result).toHaveLength(1);
+      expect(result.listings).toHaveLength(1);
+      expect(result.total).toBe(1);
       expect(mockRepository.createQueryBuilder).toHaveBeenCalledWith('listing');
       expect(mockQueryBuilder.where).toHaveBeenCalled();
       expect(mockQueryBuilder.andWhere).toHaveBeenCalled();
@@ -116,6 +121,9 @@ describe('ListingsService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(1),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
           {
             id: 'listing-1',
@@ -129,10 +137,78 @@ describe('ListingsService', () => {
 
       const result = await service.findAll(queryDto);
 
-      expect(result).toHaveLength(1);
+      expect(result.listings).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         'listing.status = :status',
         { status: ListingStatus.ACTIVE },
+      );
+    });
+
+    it('should search in title and description', async () => {
+      const queryDto = {
+        search: 'laptop',
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(2),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        setParameter: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          { id: 'listing-1', title: 'Laptop for sale' },
+          { id: 'listing-2', title: 'Gaming laptop' },
+        ]),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.findAll(queryDto);
+
+      expect(result.listings).toHaveLength(2);
+      expect(result.total).toBe(2);
+      // Full-text search uses tsvector, not LIKE
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('search_vector @@ plainto_tsquery'),
+        expect.any(Object),
+      );
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalled();
+    });
+
+    it('should filter by location', async () => {
+      const queryDto = {
+        location: 'campus',
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(1),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          { id: 'listing-1', location: 'Main Campus' },
+        ]),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.findAll(queryDto);
+
+      expect(result.listings).toHaveLength(1);
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('LOWER(listing.location)'),
+        expect.any(Object),
       );
     });
   });

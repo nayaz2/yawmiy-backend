@@ -67,6 +67,19 @@ export class Listing {
   @Column({ length: 500 })
   description: string;
 
+  // Full-text search vector (automatically updated by database trigger)
+  // Note: This column is managed by PostgreSQL, not TypeORM
+  // It's added via migration: database/migrations/add-fulltext-search.sql
+  // TypeORM doesn't support tsvector directly, so we use 'text' type
+  // The actual database column will be tsvector type
+  @Column({
+    type: 'text',
+    nullable: true,
+    select: false, // Don't select by default (not needed in queries)
+    name: 'search_vector',
+  })
+  search_vector?: string;
+
   @Column({ type: 'json', nullable: true })
   photos: string[];
 
