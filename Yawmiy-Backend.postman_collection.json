@@ -853,6 +853,252 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Create First Admin (Setup)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@university.edu\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/setup/first-admin",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"setup",
+								"first-admin"
+							]
+						},
+						"description": "Create the first admin user. This endpoint works WITHOUT authentication and can only be used if no admin exists. After creating the first admin, use the regular admin endpoints to create more admins."
+					}
+				},
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_ADMIN_TOKEN_HERE",
+								"description": "JWT token from admin user login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/users?page=1&limit=20",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search in name or email (optional)",
+									"disabled": true
+								},
+								{
+									"key": "banned",
+									"value": "false",
+									"description": "Filter by banned status (optional)",
+									"disabled": true
+								},
+								{
+									"key": "role",
+									"value": "user",
+									"description": "Filter by role: user or admin (optional)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Users per page (default: 20)"
+								}
+							]
+						},
+						"description": "List all users with filters and pagination. Requires admin role."
+					}
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_ADMIN_TOKEN_HERE",
+								"description": "JWT token from admin user login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/users/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "User ID"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific user. Requires admin role."
+					}
+				},
+				{
+					"name": "Ban User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_ADMIN_TOKEN_HERE",
+								"description": "JWT token from admin user login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Violation of terms of service - spam listings\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/users/:id/ban",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"users",
+								":id",
+								"ban"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "User ID to ban"
+								}
+							]
+						},
+						"description": "Ban a user with a reason. Cannot ban yourself or other admins. Requires admin role."
+					}
+				},
+				{
+					"name": "Unban User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_ADMIN_TOKEN_HERE",
+								"description": "JWT token from admin user login"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/users/:id/unban",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"users",
+								":id",
+								"unban"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "User ID to unban"
+								}
+							]
+						},
+						"description": "Unban a previously banned user. Requires admin role."
+					}
+				},
+				{
+					"name": "Update User Role",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_ADMIN_TOKEN_HERE",
+								"description": "JWT token from admin user login"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/users/:id/role",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"users",
+								":id",
+								"role"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "3",
+									"description": "User ID to update role"
+								}
+							]
+						},
+						"description": "Promote user to admin or demote admin to user. Cannot change your own role. Requires admin role."
+					}
+				}
+			]
 		}
 	]
 }

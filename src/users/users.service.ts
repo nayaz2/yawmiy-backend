@@ -10,12 +10,20 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async create(email: string, password: string, student_id: string, name: string): Promise<User> {
+  async create(
+    email: string,
+    password: string,
+    student_id: string,
+    name: string,
+    role: 'user' | 'admin' = 'user',
+  ): Promise<User> {
     const user = this.usersRepository.create({
       email,
       password, // Password should already be hashed before calling this method
       student_id,
       name,
+      role,
+      banned: false,
     });
     return this.usersRepository.save(user);
   }

@@ -59,6 +59,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if user is banned
+    if (user.banned) {
+      throw new UnauthorizedException('Your account has been banned');
+    }
+
     // Compare password with hash
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -66,7 +71,12 @@ export class AuthService {
     }
 
     // Generate JWT token (24-hour expiry configured in auth.module.ts)
-    const payload = { email: user.email, sub: user.id, student_id: user.student_id };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      student_id: user.student_id,
+      role: user.role || 'user', // Include role in token
+    };
     const token = this.jwtService.sign(payload);
 
     // Return token + user info (without password)

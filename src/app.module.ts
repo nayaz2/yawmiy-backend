@@ -9,6 +9,7 @@ import { ListingsModule } from './listings/listings.module';
 import { OrdersModule } from './orders/orders.module';
 import { ScoutsModule } from './scouts/scouts.module';
 import { MessagesModule } from './messages/messages.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MessagesModule } from './messages/messages.module';
     OrdersModule,
     ScoutsModule,
     MessagesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
