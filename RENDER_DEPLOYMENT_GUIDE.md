@@ -195,6 +195,24 @@ curl -X POST https://yawmiy-backend.onrender.com/auth/register \
     "name": "Test User"
   }'
 ```
+or on Powershell
+```bash
+# Test registration
+Invoke-WebRequest `
+  -Uri "https://yawmiy-backend.onrender.com/auth/register" `
+  -Method POST `
+  -Headers @{ "Content-Type" = "application/json" } `
+  -Body '{"email":"test@university.edu","password":"Test123!","student_id":"12345678","name":"Test User"}'
+```
+
+```bash
+# Test Login
+Invoke-WebRequest `
+  -Uri "https://yawmiy-backend.onrender.com/auth/login" `
+  -Method POST `
+  -Headers @{ "Content-Type" = "application/json" } `
+  -Body '{"email":"test@university.edu","password":"Test123!"}'
+```
 
 ---
 
