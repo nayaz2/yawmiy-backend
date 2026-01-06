@@ -75,19 +75,19 @@ export class ScoutsService {
    */
   async getScoutEarnings(scout_id: string): Promise<{
     scout_id: string;
-    total_earnings_paise: number;
-    total_earnings_display: string;
+    total_earnings: number; // In rupees (rounded)
+    total_earnings_display: string; // Format as "₹232"
     recruits_count: number;
-    bounty_per_recruit_paise: number;
-    bounty_per_recruit_display: string;
+    bounty_per_recruit: number; // In rupees (rounded)
+    bounty_per_recruit_display: string; // Format as "₹232"
     breakdown: Array<{
       recruit_id: number;
       recruit_name: string;
       recruit_email: string;
-      first_sale_amount_paise: number;
-      first_sale_amount_display: string;
-      bounty_earned_paise: number;
-      bounty_earned_display: string;
+      first_sale_amount: number; // In rupees (rounded)
+      first_sale_amount_display: string; // Format as "₹232"
+      bounty_earned: number; // In rupees (rounded)
+      bounty_earned_display: string; // Format as "₹232"
     }>;
   }> {
     const scout = await this.scoutsRepository.findOne({
@@ -142,14 +142,26 @@ export class ScoutsService {
     // Total earnings = number of recruits with first sale * ₹10
     const total_earnings_paise = breakdown.length * BOUNTY_PER_FIRST_SALE_PAISE;
 
+    // Format breakdown with rounded rupees
+    const formattedBreakdown = breakdown.map((item) => ({
+      ...item,
+      first_sale_amount: Math.round(item.first_sale_amount_paise / 100), // In rupees
+      first_sale_amount_display: `₹${Math.round(item.first_sale_amount_paise / 100)}`, // Format as "₹232"
+      bounty_earned: Math.round(item.bounty_earned_paise / 100), // In rupees
+      bounty_earned_display: `₹${Math.round(item.bounty_earned_paise / 100)}`, // Format as "₹232"
+    }));
+
+    const total_earnings_rupees = Math.round(total_earnings_paise / 100);
+    const bounty_per_recruit_rupees = Math.round(BOUNTY_PER_FIRST_SALE_PAISE / 100);
+
     return {
       scout_id: scout.scout_id,
-      total_earnings_paise,
-      total_earnings_display: `₹${(total_earnings_paise / 100).toFixed(2)}`,
+      total_earnings: total_earnings_rupees, // In rupees (rounded)
+      total_earnings_display: `₹${total_earnings_rupees}`, // Format as "₹232"
       recruits_count: recruits.length,
-      bounty_per_recruit_paise: BOUNTY_PER_FIRST_SALE_PAISE,
-      bounty_per_recruit_display: `₹${(BOUNTY_PER_FIRST_SALE_PAISE / 100).toFixed(2)}`,
-      breakdown,
+      bounty_per_recruit: bounty_per_recruit_rupees, // In rupees (rounded)
+      bounty_per_recruit_display: `₹${bounty_per_recruit_rupees}`, // Format as "₹232"
+      breakdown: formattedBreakdown,
     };
   }
 
@@ -217,8 +229,8 @@ export class ScoutsService {
     user_name: string;
     user_email: string;
     recruits_count: number;
-    earnings_paise: number;
-    earnings_display: string;
+    earnings: number; // In rupees (rounded)
+    earnings_display: string; // Format as "₹232"
   }>> {
     const scouts = await this.scoutsRepository.find({
       where: { status: ScoutStatus.ACTIVE },
@@ -227,59 +239,29 @@ export class ScoutsService {
       take: limit,
     });
 
-    return scouts.map((scout, index) => ({
-      rank: index + 1,
-      scout_id: scout.scout_id,
-      user_id: scout.user_id,
-      user_name: scout.user.name,
-      user_email: scout.user.email,
-      recruits_count: scout.recruits_count,
-      earnings_paise: scout.earnings_paise,
-      earnings_display: `₹${(scout.earnings_paise / 100).toFixed(2)}`,
-    }));
+    return scouts.map((scout, index) => {
+      const earnings_rupees = Math.round(scout.earnings_paise / 100);
+      return {
+        rank: index + 1,
+        scout_id: scout.scout_id,
+        user_id: scout.user_id,
+        user_name: scout.user.name,
+        user_email: scout.user.email,
+        recruits_count: scout.recruits_count,
+        earnings: earnings_rupees, // In rupees (rounded)
+        earnings_display: `₹${earnings_rupees}`, // Format as "₹232"
+      };
+    });
   }
 
   /**
-   * Request Payout
-   * Queue payout request (placeholder for now)
+   * Get scout by ID (helper method)
    */
-  async requestPayout(scout_id: string, amount_paise?: number): Promise<{
-    scout_id: string;
-    requested_amount_paise: number;
-    requested_amount_display: string;
-    message: string;
-  }> {
-    const scout = await this.scoutsRepository.findOne({
+  async getScoutById(scout_id: string) {
+    return this.scoutsRepository.findOne({
       where: { scout_id },
+      relations: ['user'],
     });
-
-    if (!scout) {
-      throw new NotFoundException('Scout not found');
-    }
-
-    // If no amount specified, request all earnings
-    const requested_amount_paise = amount_paise || scout.earnings_paise;
-
-    if (requested_amount_paise > scout.earnings_paise) {
-      throw new BadRequestException('Requested amount exceeds available earnings');
-    }
-
-    if (requested_amount_paise <= 0) {
-      throw new BadRequestException('Requested amount must be greater than 0');
-    }
-
-    // TODO: Queue payout request (implement payout queue system)
-    // For now, just return the request details
-    console.log(
-      `💸 Payout requested: Scout ${scout_id} requested ₹${(requested_amount_paise / 100).toFixed(2)}`,
-    );
-
-    return {
-      scout_id: scout.scout_id,
-      requested_amount_paise,
-      requested_amount_display: `₹${(requested_amount_paise / 100).toFixed(2)}`,
-      message: 'Payout request received. Processing will begin shortly.',
-    };
   }
 }
 

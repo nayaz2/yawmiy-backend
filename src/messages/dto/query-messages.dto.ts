@@ -23,3 +23,5 @@ export class QueryMessagesDto {
   limit?: number = 50; // Default 50 messages per page
 }
 
+
+

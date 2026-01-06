@@ -348,3 +348,5 @@ Potential improvements:
 - [ ] Search suggestions/autocomplete
 - [ ] Advanced filters (date range, seller rating, etc.)
 
+
+

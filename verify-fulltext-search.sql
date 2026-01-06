@@ -40,3 +40,5 @@ LIMIT 10;
 --   setweight(to_tsvector('english', COALESCE(description, '')), 'B')
 -- WHERE search_vector IS NULL;
 
+
+

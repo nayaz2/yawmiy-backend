@@ -145,3 +145,5 @@ const useFullTextSearch = false; // Line 50
 - `database/migrations/add-fulltext-search.sql` - Migration script
 - `FULLTEXT_SEARCH_SETUP.md` - Complete setup guide
 
+
+

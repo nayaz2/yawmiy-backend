@@ -10,6 +10,7 @@ import { OrdersModule } from './orders/orders.module';
 import { ScoutsModule } from './scouts/scouts.module';
 import { MessagesModule } from './messages/messages.module';
 import { AdminModule } from './admin/admin.module';
+import { PayoutsModule } from './payouts/payouts.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AdminModule } from './admin/admin.module';
     ScoutsModule,
     MessagesModule,
     AdminModule,
+    PayoutsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

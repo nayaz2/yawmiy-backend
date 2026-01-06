@@ -50,3 +50,5 @@ CREATE INDEX IF NOT EXISTS listings_created_at_idx ON listings(created_at DESC);
 -- WHERE search_vector @@ plainto_tsquery('english', 'laptop')
 -- ORDER BY relevance DESC;
 
+
+

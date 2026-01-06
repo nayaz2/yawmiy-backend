@@ -257,8 +257,8 @@ describe('ScoutsService', () => {
       const result = await service.getScoutEarnings(scoutId);
 
       expect(result.scout_id).toBe(scoutId);
-      expect(result.total_earnings_paise).toBe(1000);
-      expect(result.total_earnings_display).toBe('₹10.00');
+      expect(result.total_earnings).toBe(10); // In rupees (rounded)
+      expect(result.total_earnings_display).toBe('₹10'); // Format as "₹10"
       expect(result.recruits_count).toBe(1);
       expect(result.breakdown).toHaveLength(1);
     });
@@ -295,9 +295,9 @@ describe('ScoutsService', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0].rank).toBe(1);
-      expect(result[0].earnings_paise).toBe(5000);
+      expect(result[0].earnings).toBe(50); // In rupees (rounded, 5000 paise = ₹50)
       expect(result[1].rank).toBe(2);
-      expect(result[1].earnings_paise).toBe(3000);
+      expect(result[1].earnings).toBe(30); // In rupees (rounded, 3000 paise = ₹30)
     });
   });
 });

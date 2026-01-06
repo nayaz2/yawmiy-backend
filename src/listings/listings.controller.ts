@@ -38,10 +38,10 @@ export class ListingsController {
   async findAll(@Query() queryDto: QueryListingsDto) {
     const result = await this.listingsService.findAll(queryDto);
 
-    // Convert price from paise to rupees for display
+    // Convert price from paise to rupees for display (rounded)
     const listings = result.listings.map((listing) => ({
       ...listing,
-      price_display: `₹${(listing.price / 100).toFixed(2)}`,
+      price_display: `₹${Math.round(listing.price / 100)}`, // Rounded rupees, e.g., "₹232"
     }));
 
     return {
@@ -58,7 +58,7 @@ export class ListingsController {
     const listing = await this.listingsService.findOne(id);
     return {
       ...listing,
-      price_display: `₹${(listing.price / 100).toFixed(2)}`,
+      price_display: `₹${Math.round(listing.price / 100)}`, // Rounded rupees, e.g., "₹232"
     };
   }
 
@@ -74,7 +74,7 @@ export class ListingsController {
     );
     return {
       ...listing,
-      price_display: `₹${(listing.price / 100).toFixed(2)}`,
+      price_display: `₹${Math.round(listing.price / 100)}`, // Rounded rupees, e.g., "₹232"
     };
   }
 
@@ -95,7 +95,7 @@ export class ListingsController {
     );
     return {
       ...listing,
-      price_display: `₹${(listing.price / 100).toFixed(2)}`,
+      price_display: `₹${Math.round(listing.price / 100)}`, // Rounded rupees, e.g., "₹232"
     };
   }
 

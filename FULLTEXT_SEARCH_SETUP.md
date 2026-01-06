@@ -320,3 +320,5 @@ Look for `Bitmap Index Scan` on `listings_search_vector_idx` - this means the in
 - `src/listings/listings.service.ts` - Service with full-text search logic
 - `src/listings/listing.entity.ts` - Entity with search_vector column
 
+
+

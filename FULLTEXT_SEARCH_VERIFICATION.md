@@ -146,3 +146,5 @@ Look for `Bitmap Index Scan on listings_search_vector_idx` - this means the inde
 
 Your full-text search is now ready to use! 🚀
 
+
+

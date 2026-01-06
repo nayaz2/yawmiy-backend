@@ -13,13 +13,18 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { OrdersService } from './orders.service';
+import { PayoutsService } from '../payouts/payouts.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CompleteOrderDto } from './dto/complete-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PayoutType } from '../payouts/payout.entity';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly payoutsService: PayoutsService,
+  ) {}
 
   /**
    * POST /orders - Create a new order
@@ -176,10 +181,10 @@ export class OrdersController {
     const order = await this.ordersService.findOne(order_id, req.user.userId);
     return {
       ...order,
-      item_price_display: `₹${(order.item_price_paise / 100).toFixed(2)}`,
-      platform_fee_display: `₹${(order.platform_fee_paise / 100).toFixed(2)}`,
-      phonepe_fee_display: `₹${(order.phonepe_fee_paise / 100).toFixed(2)}`,
-      total_display: `₹${(order.total_paise / 100).toFixed(2)}`,
+      item_price_display: `₹${Math.round(order.item_price_paise / 100)}`, // Rounded rupees
+      platform_fee_display: `₹${Math.round(order.platform_fee_paise / 100)}`, // Rounded rupees
+      phonepe_fee_display: `₹${Math.round(order.phonepe_fee_paise / 100)}`, // Rounded rupees
+      total_display: `₹${Math.round(order.total_paise / 100)}`, // Rounded rupees
     };
   }
 
@@ -193,10 +198,10 @@ export class OrdersController {
     const orders = await this.ordersService.findUserOrders(req.user.userId);
     return orders.map((order) => ({
       ...order,
-      item_price_display: `₹${(order.item_price_paise / 100).toFixed(2)}`,
-      platform_fee_display: `₹${(order.platform_fee_paise / 100).toFixed(2)}`,
-      phonepe_fee_display: `₹${(order.phonepe_fee_paise / 100).toFixed(2)}`,
-      total_display: `₹${(order.total_paise / 100).toFixed(2)}`,
+      item_price_display: `₹${Math.round(order.item_price_paise / 100)}`, // Rounded rupees
+      platform_fee_display: `₹${Math.round(order.platform_fee_paise / 100)}`, // Rounded rupees
+      phonepe_fee_display: `₹${Math.round(order.phonepe_fee_paise / 100)}`, // Rounded rupees
+      total_display: `₹${Math.round(order.total_paise / 100)}`, // Rounded rupees
     }));
   }
 
@@ -249,7 +254,31 @@ export class OrdersController {
       ? new Date(completeOrderDto.meeting_time)
       : undefined;
 
-    return this.ordersService.completeOrder(order_id, req.user.userId, meeting_time);
+    const result = await this.ordersService.completeOrder(order_id, req.user.userId, meeting_time);
+
+    // Create automatic seller payout (will be processed on 1st/16th, 2 weeks after completion)
+    // immediate=false means it will be marked as PAYABLE
+    // Payout will be held for 2 weeks to check for returns/refunds
+    try {
+      const order = await this.ordersService.findOne(order_id, req.user.userId);
+      await this.payoutsService.createPayoutRequest(
+        order.seller_id,
+        result.seller_payout_paise,
+        PayoutType.SELLER_PAYOUT,
+        undefined,
+        order_id,
+        false, // Not immediate - will be paid on 1st/16th, 2 weeks after completion
+      );
+    } catch (error) {
+      // Log error but don't fail the order completion
+      console.error('Error creating seller payout:', error);
+    }
+
+    // Return result with rounded rupee display
+    return {
+      ...result,
+      seller_payout_display: `₹${Math.round(result.seller_payout_paise / 100)}`, // Rounded rupees
+    };
   }
 }
 

@@ -9,13 +9,18 @@ import {
   Request,
 } from '@nestjs/common';
 import { ScoutsService } from './scouts.service';
+import { PayoutsService } from '../payouts/payouts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RegisterScoutDto } from './dto/register-scout.dto';
 import { RequestPayoutDto } from './dto/request-payout.dto';
+import { PayoutType } from '../payouts/payout.entity';
 
 @Controller('scouts')
 export class ScoutsController {
-  constructor(private readonly scoutsService: ScoutsService) {}
+  constructor(
+    private readonly scoutsService: ScoutsService,
+    private readonly payoutsService: PayoutsService,
+  ) {}
 
   /**
    * POST /scouts/register - Register as a scout
@@ -66,7 +71,50 @@ export class ScoutsController {
     @Body() requestPayoutDto: RequestPayoutDto,
     @Request() req,
   ) {
-    return this.scoutsService.requestPayout(scout_id, requestPayoutDto.amount_paise);
+    // Get scout to verify ownership and get user_id
+    const scout = await this.scoutsService.getScoutById(scout_id);
+    if (!scout) {
+      throw new Error('Scout not found');
+    }
+
+    // Verify scout belongs to authenticated user
+    if (scout.user_id !== req.user.userId) {
+      throw new Error('Unauthorized');
+    }
+
+    // Determine payout amount
+    const amount_paise = requestPayoutDto.amount_paise || scout.earnings_paise;
+
+    if (amount_paise > scout.earnings_paise) {
+      throw new Error('Requested amount exceeds available earnings');
+    }
+
+    if (amount_paise <= 0) {
+      throw new Error('Requested amount must be greater than 0');
+    }
+
+    // Create payout request (will be processed on 1st/16th, 2 weeks after transaction)
+    // immediate=false means it will be marked as PAYABLE
+    // Payout will be held for 2 weeks to check for returns/refunds
+    const payout = await this.payoutsService.createPayoutRequest(
+      req.user.userId,
+      amount_paise,
+      PayoutType.SCOUT_BOUNTY,
+      scout_id,
+      undefined,
+      false, // Not immediate - will be paid on 1st/16th, 2 weeks after transaction
+    );
+
+    const requested_amount_rupees = Math.round(amount_paise / 100);
+
+    return {
+      scout_id,
+      payout_id: payout.payout_id,
+      requested_amount: requested_amount_rupees, // In rupees (rounded)
+      requested_amount_display: `₹${requested_amount_rupees}`, // Format as "₹232"
+      status: payout.status,
+      message: 'Payout request received. Will be processed on next payment date (1st/16th), 2 weeks after transaction.',
+    };
   }
 }
 
