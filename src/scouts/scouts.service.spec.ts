@@ -252,7 +252,15 @@ describe('ScoutsService', () => {
 
       mockScoutRepository.findOne.mockResolvedValue({ ...mockScout, user: { id: userId } });
       mockUserRepository.find.mockResolvedValue([mockRecruit]);
-      mockOrderRepository.findOne.mockResolvedValue(mockCompletedOrder);
+      
+      // Mock createQueryBuilder for the optimized query
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockCompletedOrder]),
+      };
+      mockOrderRepository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
 
       const result = await service.getScoutEarnings(scoutId);
 

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -8,7 +8,7 @@ export class User {
   @Column({ unique: true, update: false }) // IMMUTABLE - cannot change after creation
   email: string;
 
-  @Column()
+  @Column({ select: false }) // Don't select by default (security)
   password: string;
 
   @Column({ unique: true, update: false }) // Locked after registration
@@ -35,5 +35,8 @@ export class User {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   banned_reason: string | null;
+
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }
 

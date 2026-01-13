@@ -17,6 +17,14 @@ describe('ListingsService', () => {
     findOne: jest.fn(),
     remove: jest.fn(),
     createQueryBuilder: jest.fn(),
+    manager: {
+      createQueryBuilder: jest.fn(),
+    },
+  };
+
+  const mockOrderRepository = {
+    count: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -26,6 +34,10 @@ describe('ListingsService', () => {
         {
           provide: getRepositoryToken(Listing),
           useValue: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(Order),
+          useValue: mockOrderRepository,
         },
       ],
     }).compile();
@@ -84,7 +96,8 @@ describe('ListingsService', () => {
       };
 
       const mockQueryBuilder = {
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -98,11 +111,25 @@ describe('ListingsService', () => {
             category: ListingCategory.ELECTRONICS,
             price: 25000,
             condition: ListingCondition.GOOD,
+            seller_id: 1,
           },
         ]),
       };
 
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
       mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       const result = await service.findAll(queryDto);
 
@@ -117,7 +144,8 @@ describe('ListingsService', () => {
       const queryDto = {};
 
       const mockQueryBuilder = {
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -129,11 +157,25 @@ describe('ListingsService', () => {
             id: 'listing-1',
             title: 'Test Item',
             status: ListingStatus.ACTIVE,
+            seller_id: 1,
           },
         ]),
       };
 
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
       mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       const result = await service.findAll(queryDto);
 
@@ -153,10 +195,10 @@ describe('ListingsService', () => {
       };
 
       const mockQueryBuilder = {
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(2),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
@@ -164,12 +206,31 @@ describe('ListingsService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         setParameter: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
-          { id: 'listing-1', title: 'Laptop for sale' },
-          { id: 'listing-2', title: 'Gaming laptop' },
+          { id: 'listing-1', title: 'Laptop for sale', seller_id: 1 },
+          { id: 'listing-2', title: 'Gaming laptop', seller_id: 2 },
         ]),
       };
 
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn()
+          .mockResolvedValueOnce({
+            user_id: 1,
+            user_name: 'Test Seller 1',
+            user_created_at: new Date('2024-01-01'),
+          })
+          .mockResolvedValueOnce({
+            user_id: 2,
+            user_name: 'Test Seller 2',
+            user_created_at: new Date('2024-01-01'),
+          }),
+      };
+
       mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       const result = await service.findAll(queryDto);
 
@@ -189,7 +250,8 @@ describe('ListingsService', () => {
       };
 
       const mockQueryBuilder = {
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(1),
@@ -197,11 +259,24 @@ describe('ListingsService', () => {
         take: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
-          { id: 'listing-1', location: 'Main Campus' },
+          { id: 'listing-1', location: 'Main Campus', seller_id: 1 },
         ]),
       };
 
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
       mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       const result = await service.findAll(queryDto);
 
@@ -220,21 +295,48 @@ describe('ListingsService', () => {
         id: listingId,
         title: 'Test Book',
         status: ListingStatus.ACTIVE,
+        seller_id: 1,
       };
 
-      mockRepository.findOne.mockResolvedValue(mockListing);
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockListing),
+      };
+
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       const result = await service.findOne(listingId);
 
-      expect(result).toEqual(mockListing);
-      expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: listingId },
-        relations: ['seller'],
-      });
+      expect(result.id).toBe(listingId);
+      expect(result.seller).toBeDefined();
+      expect(result.seller.id).toBe(1);
+      expect(result.seller.name).toBe('Test Seller');
     });
 
     it('should throw NotFoundException if listing not found', async () => {
-      mockRepository.findOne.mockResolvedValue(null);
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
       await expect(service.findOne('non-existent-id')).rejects.toThrow(NotFoundException);
     });
@@ -271,7 +373,27 @@ describe('ListingsService', () => {
         seller_id: 1, // Different seller
       };
 
-      mockRepository.findOne.mockResolvedValue(mockListing);
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockListing),
+      };
+
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       await expect(service.update(listingId, updateDto, wrongSellerId)).rejects.toThrow(
         ForbiddenException,
@@ -289,7 +411,27 @@ describe('ListingsService', () => {
         seller_id: sellerId,
       };
 
-      mockRepository.findOne.mockResolvedValue(mockListing);
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockListing),
+      };
+
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: sellerId,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
       mockRepository.remove.mockResolvedValue(mockListing);
 
       await service.remove(listingId, sellerId);
@@ -306,7 +448,27 @@ describe('ListingsService', () => {
         seller_id: 1, // Different seller
       };
 
-      mockRepository.findOne.mockResolvedValue(mockListing);
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockListing),
+      };
+
+      const mockSellerQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({
+          user_id: 1,
+          user_name: 'Test Seller',
+          user_created_at: new Date('2024-01-01'),
+        }),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      mockRepository.manager.createQueryBuilder.mockReturnValue(mockSellerQueryBuilder);
+      mockOrderRepository.count.mockResolvedValue(5);
 
       await expect(service.remove(listingId, wrongSellerId)).rejects.toThrow(ForbiddenException);
     });

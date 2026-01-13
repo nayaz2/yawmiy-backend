@@ -104,7 +104,37 @@ export class ScoutsService {
       where: { recruiter_id: scout.user_id },
     });
 
-    // Find first completed sale for each recruit (as seller)
+    if (recruits.length === 0) {
+      return {
+        scout_id: scout.scout_id,
+        total_earnings: 0,
+        total_earnings_display: '₹0',
+        recruits_count: 0,
+        bounty_per_recruit: 10,
+        bounty_per_recruit_display: '₹10',
+        breakdown: [],
+      };
+    }
+
+    // OPTIMIZATION: Get all recruits' first sales in a single query (fixes N+1 problem)
+    // This uses the composite index idx_orders_seller_status_completed for fast lookups
+    const recruitIds = recruits.map((r) => r.id);
+    const allFirstSales = await this.ordersRepository
+      .createQueryBuilder('order')
+      .where('order.seller_id IN (:...recruitIds)', { recruitIds })
+      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .orderBy('order.completed_at', 'ASC')
+      .getMany();
+
+    // Group by seller_id to get first sale per recruit (DISTINCT ON equivalent)
+    const firstSaleMap = new Map<number, typeof allFirstSales[0]>();
+    for (const sale of allFirstSales) {
+      if (!firstSaleMap.has(sale.seller_id)) {
+        firstSaleMap.set(sale.seller_id, sale);
+      }
+    }
+
+    // Build breakdown using the map (single pass)
     const breakdown: Array<{
       recruit_id: number;
       recruit_name: string;
@@ -117,24 +147,16 @@ export class ScoutsService {
     const BOUNTY_PER_FIRST_SALE_PAISE = 1000; // ₹10
 
     for (const recruit of recruits) {
-      // Find first completed order where recruit is seller
-      const firstSale = await this.ordersRepository.findOne({
-        where: {
-          seller_id: recruit.id,
-          status: OrderStatus.COMPLETED,
-        },
-        order: { completed_at: 'ASC' }, // First completed sale
-      });
-
+      const firstSale = firstSaleMap.get(recruit.id);
       if (firstSale) {
         breakdown.push({
           recruit_id: recruit.id,
           recruit_name: recruit.name,
           recruit_email: recruit.email,
           first_sale_amount_paise: firstSale.item_price_paise,
-          first_sale_amount_display: `₹${(firstSale.item_price_paise / 100).toFixed(2)}`,
+          first_sale_amount_display: `₹${Math.round(firstSale.item_price_paise / 100)}`,
           bounty_earned_paise: BOUNTY_PER_FIRST_SALE_PAISE,
-          bounty_earned_display: `₹${(BOUNTY_PER_FIRST_SALE_PAISE / 100).toFixed(2)}`,
+          bounty_earned_display: `₹${Math.round(BOUNTY_PER_FIRST_SALE_PAISE / 100)}`,
         });
       }
     }

@@ -70,7 +70,7 @@ export class Payout {
   @JoinColumn({ name: 'order_id' })
   order: Order;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'varchar' })
   payment_reference: string | null; // External payment reference (e.g., PhonePe transaction ID)
 
   @Column({ nullable: true, type: 'text' })

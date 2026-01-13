@@ -9,12 +9,15 @@ import { Listing, ListingStatus } from './listing.entity';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { QueryListingsDto, SortOption } from './dto/query-listings.dto';
+import { Order, OrderStatus } from '../orders/order.entity';
 
 @Injectable()
 export class ListingsService {
   constructor(
     @InjectRepository(Listing)
     private listingsRepository: Repository<Listing>,
+    @InjectRepository(Order)
+    private ordersRepository: Repository<Order>,
   ) {}
 
   /**
@@ -33,7 +36,7 @@ export class ListingsService {
    * Find all listings with filters, search, and pagination
    */
   async findAll(queryDto: QueryListingsDto): Promise<{
-    listings: Listing[];
+    listings: Array<Omit<Listing, 'seller'> & { seller: any }>;
     total: number;
     page: number;
     limit: number;
@@ -41,7 +44,12 @@ export class ListingsService {
   }> {
     const queryBuilder = this.listingsRepository
       .createQueryBuilder('listing')
-      .leftJoinAndSelect('listing.seller', 'seller')
+      .leftJoin('listing.seller', 'seller')
+      .addSelect([
+        'seller.id',
+        'seller.name',
+        'seller.created_at',
+      ])
       .where('listing.status = :status', { status: ListingStatus.ACTIVE });
 
     // Text search in title and description
@@ -173,8 +181,19 @@ export class ListingsService {
 
     const listings = await queryBuilder.getMany();
 
+    // Format seller info and add rating/review count
+    const formattedListings = await Promise.all(
+      listings.map(async (listing) => {
+        const sellerInfo = await this.getSellerInfoForBuyer(listing.seller_id);
+        return {
+          ...listing,
+          seller: sellerInfo,
+        };
+      }),
+    );
+
     return {
-      listings,
+      listings: formattedListings,
       total,
       page,
       limit,
@@ -183,19 +202,89 @@ export class ListingsService {
   }
 
   /**
+   * Get seller information formatted for buyers
+   * Excludes sensitive fields (password, email, student_id)
+   * Includes: id, name, rating, review_count, member_since
+   */
+  private async getSellerInfoForBuyer(sellerId: number): Promise<{
+    id: number;
+    name: string;
+    rating: number;
+    review_count: number;
+    member_since: string; // Formatted as "Member since [date]"
+  }> {
+    // Get seller basic info (excluding password, email, student_id)
+    const seller = await this.listingsRepository.manager
+      .createQueryBuilder()
+      .select(['user.id', 'user.name', 'user.created_at'])
+      .from('user', 'user')
+      .where('user.id = :sellerId', { sellerId })
+      .getRawOne();
+
+    if (!seller) {
+      return {
+        id: sellerId,
+        name: 'Unknown Seller',
+        rating: 0,
+        review_count: 0,
+        member_since: 'Unknown',
+      };
+    }
+
+    // Calculate rating and review count from completed orders
+    // For now, use completed orders count as review count
+    // Rating will be 5.0 by default (can be enhanced with actual rating system)
+    const completedOrdersCount = await this.ordersRepository.count({
+      where: {
+        seller_id: sellerId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    // Format member since date
+    const memberSinceDate = seller.user_created_at
+      ? new Date(seller.user_created_at)
+      : new Date();
+    const memberSince = `Member since ${memberSinceDate.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    })}`;
+
+    return {
+      id: seller.user_id,
+      name: seller.user_name,
+      rating: completedOrdersCount > 0 ? 5.0 : 0, // Placeholder: default 5.0 if has sales
+      review_count: completedOrdersCount,
+      member_since: memberSince,
+    };
+  }
+
+  /**
    * Find one listing by ID
    */
-  async findOne(id: string): Promise<Listing> {
-    const listing = await this.listingsRepository.findOne({
-      where: { id },
-      relations: ['seller'],
-    });
+  async findOne(id: string): Promise<Omit<Listing, 'seller'> & { seller: any }> {
+    const listing = await this.listingsRepository
+      .createQueryBuilder('listing')
+      .leftJoin('listing.seller', 'seller')
+      .addSelect([
+        'seller.id',
+        'seller.name',
+        'seller.created_at',
+      ])
+      .where('listing.id = :id', { id })
+      .getOne();
 
     if (!listing) {
       throw new NotFoundException(`Listing with ID ${id} not found`);
     }
 
-    return listing;
+    // Format seller info
+    const sellerInfo = await this.getSellerInfoForBuyer(listing.seller_id);
+
+    return {
+      ...listing,
+      seller: sellerInfo,
+    };
   }
 
   /**

@@ -322,3 +322,5 @@ Look for `Bitmap Index Scan` on `listings_search_vector_idx` - this means the in
 
 
 
+
+

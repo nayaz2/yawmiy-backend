@@ -377,11 +377,25 @@ export class OrdersService {
   /**
    * Get order by ID
    */
-  async findOne(order_id: string, userId: number): Promise<Order> {
-    const order = await this.ordersRepository.findOne({
-      where: { order_id },
-      relations: ['listing', 'buyer', 'seller'],
-    });
+  async findOne(order_id: string, userId: number): Promise<Omit<Order, 'seller' | 'buyer'> & { seller: any; buyer: any }> {
+    const order = await this.ordersRepository
+      .createQueryBuilder('order')
+      .leftJoin('order.listing', 'listing')
+      .leftJoin('order.buyer', 'buyer')
+      .leftJoin('order.seller', 'seller')
+      .addSelect([
+        'listing.id',
+        'listing.title',
+        'listing.price',
+        'buyer.id',
+        'buyer.name',
+        'buyer.created_at',
+        'seller.id',
+        'seller.name',
+        'seller.created_at',
+      ])
+      .where('order.order_id = :order_id', { order_id })
+      .getOne();
 
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -392,21 +406,110 @@ export class OrdersService {
       throw new ForbiddenException('You can only view your own orders');
     }
 
-    return order;
+    // Format seller and buyer info (exclude sensitive fields)
+    const sellerInfo = await this.getSellerInfoForBuyer(order.seller_id);
+    const buyerInfo = await this.getSellerInfoForBuyer(order.buyer_id);
+
+    return {
+      ...order,
+      seller: sellerInfo,
+      buyer: buyerInfo,
+    };
+  }
+
+  /**
+   * Get seller information formatted for buyers
+   * Excludes sensitive fields (password, email, student_id)
+   */
+  private async getSellerInfoForBuyer(sellerId: number): Promise<{
+    id: number;
+    name: string;
+    rating: number;
+    review_count: number;
+    member_since: string;
+  }> {
+    // Get seller basic info
+    const seller = await this.ordersRepository.manager
+      .createQueryBuilder()
+      .select(['user.id', 'user.name', 'user.created_at'])
+      .from('user', 'user')
+      .where('user.id = :sellerId', { sellerId })
+      .getRawOne();
+
+    if (!seller) {
+      return {
+        id: sellerId,
+        name: 'Unknown',
+        rating: 0,
+        review_count: 0,
+        member_since: 'Unknown',
+      };
+    }
+
+    // Calculate rating and review count from completed orders
+    const completedOrdersCount = await this.ordersRepository.count({
+      where: {
+        seller_id: sellerId,
+        status: OrderStatus.COMPLETED,
+      },
+    });
+
+    // Format member since date
+    const memberSinceDate = seller.user_created_at
+      ? new Date(seller.user_created_at)
+      : new Date();
+    const memberSince = `Member since ${memberSinceDate.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    })}`;
+
+    return {
+      id: seller.user_id,
+      name: seller.user_name,
+      rating: completedOrdersCount > 0 ? 5.0 : 0, // Placeholder: default 5.0 if has sales
+      review_count: completedOrdersCount,
+      member_since: memberSince,
+    };
   }
 
   /**
    * Get orders for a user (buyer or seller)
    */
-  async findUserOrders(userId: number): Promise<Order[]> {
-    return this.ordersRepository.find({
-      where: [
-        { buyer_id: userId },
-        { seller_id: userId },
-      ],
-      relations: ['listing'],
-      order: { created_at: 'DESC' },
-    });
+  async findUserOrders(userId: number): Promise<Array<Omit<Order, 'seller' | 'buyer'> & { seller?: any; buyer?: any }>> {
+    const orders = await this.ordersRepository
+      .createQueryBuilder('order')
+      .leftJoin('order.listing', 'listing')
+      .leftJoin('order.seller', 'seller')
+      .leftJoin('order.buyer', 'buyer')
+      .addSelect([
+        'listing.id',
+        'listing.title',
+        'listing.price',
+        'seller.id',
+        'seller.name',
+        'seller.created_at',
+        'buyer.id',
+        'buyer.name',
+        'buyer.created_at',
+      ])
+      .where('order.buyer_id = :userId OR order.seller_id = :userId', { userId })
+      .orderBy('order.created_at', 'DESC')
+      .getMany();
+
+    // Format seller and buyer info for each order
+    const formattedOrders = await Promise.all(
+      orders.map(async (order) => {
+        const sellerInfo = await this.getSellerInfoForBuyer(order.seller_id);
+        const buyerInfo = await this.getSellerInfoForBuyer(order.buyer_id);
+        return {
+          ...order,
+          seller: sellerInfo,
+          buyer: buyerInfo,
+        };
+      }),
+    );
+
+    return formattedOrders;
   }
 }
 

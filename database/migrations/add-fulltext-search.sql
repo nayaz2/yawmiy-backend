@@ -52,3 +52,5 @@ CREATE INDEX IF NOT EXISTS listings_created_at_idx ON listings(created_at DESC);
 
 
 
+
+
