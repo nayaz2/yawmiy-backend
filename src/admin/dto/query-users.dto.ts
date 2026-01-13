@@ -1,7 +1,9 @@
 import { IsOptional, IsInt, Min, IsString, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Sanitize } from '../../common/decorators/sanitize.decorator';
 
 export class QueryUsersDto {
+  @Sanitize()
   @IsOptional()
   @IsString()
   search?: string; // Search in name or email

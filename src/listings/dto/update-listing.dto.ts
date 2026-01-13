@@ -8,8 +8,10 @@ import {
   Min,
 } from 'class-validator';
 import { ListingCategory, ListingCondition, ListingStatus } from '../listing.entity';
+import { Sanitize } from '../../common/decorators/sanitize.decorator';
 
 export class UpdateListingDto {
+  @Sanitize()
   @IsString()
   @IsOptional()
   @MaxLength(100, { message: 'Title must be at most 100 characters' })
@@ -28,6 +30,7 @@ export class UpdateListingDto {
   @IsOptional()
   condition?: ListingCondition;
 
+  @Sanitize()
   @IsString()
   @IsOptional()
   @MaxLength(500, { message: 'Description must be at most 500 characters' })
@@ -38,6 +41,7 @@ export class UpdateListingDto {
   @IsOptional()
   photos?: string[];
 
+  @Sanitize()
   @IsString()
   @IsOptional()
   location?: string;

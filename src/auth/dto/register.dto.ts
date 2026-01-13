@@ -1,4 +1,5 @@
 import { IsEmail, IsString, MinLength, Matches, IsNotEmpty } from 'class-validator';
+import { Sanitize } from '../../common/decorators/sanitize.decorator';
 
 export class RegisterDto {
   @IsEmail({}, { message: 'Email must be a valid email address' })
@@ -19,6 +20,7 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'Student ID is required' })
   student_id: string;
 
+  @Sanitize()
   @IsString()
   @IsNotEmpty({ message: 'Name is required' })
   name: string;

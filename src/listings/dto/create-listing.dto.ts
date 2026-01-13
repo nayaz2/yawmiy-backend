@@ -9,8 +9,10 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { ListingCategory, ListingCondition } from '../listing.entity';
+import { Sanitize } from '../../common/decorators/sanitize.decorator';
 
 export class CreateListingDto {
+  @Sanitize()
   @IsString()
   @IsNotEmpty({ message: 'Title is required' })
   @MaxLength(100, { message: 'Title must be at most 100 characters' })
@@ -29,6 +31,7 @@ export class CreateListingDto {
   @IsNotEmpty({ message: 'Condition is required' })
   condition: ListingCondition;
 
+  @Sanitize()
   @IsString()
   @IsNotEmpty({ message: 'Description is required' })
   @MaxLength(500, { message: 'Description must be at most 500 characters' })
@@ -39,6 +42,7 @@ export class CreateListingDto {
   @IsOptional()
   photos?: string[];
 
+  @Sanitize()
   @IsString()
   @IsNotEmpty({ message: 'Location is required' })
   location: string;

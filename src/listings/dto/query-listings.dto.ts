@@ -1,6 +1,7 @@
 import { IsEnum, IsInt, IsOptional, Min, IsString, IsArray, Max } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ListingCategory, ListingCondition } from '../listing.entity';
+import { Sanitize } from '../../common/decorators/sanitize.decorator';
 
 export enum SortOption {
   PRICE_ASC = 'price_asc',
@@ -12,6 +13,7 @@ export enum SortOption {
 
 export class QueryListingsDto {
   // Text search
+  @Sanitize()
   @IsString()
   @IsOptional()
   search?: string; // Search in title and description
