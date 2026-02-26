@@ -53,8 +53,8 @@ export class AuthService {
    * @returns JWT token and user info
    */
   async login(email: string, password: string): Promise<{ token: string; user: any }> {
-    // Find user by email
-    const user = await this.usersService.findOne(email);
+    // Find user by email (with password field included for authentication)
+    const user = await this.usersService.findOneWithPassword(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -115,7 +115,7 @@ export class AuthService {
    * Validate user credentials (used by LocalStrategy)
    */
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findOne(email);
+    const user = await this.usersService.findOneWithPassword(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;

@@ -38,6 +38,30 @@ export class UsersService {
     return user === null ? undefined : user;
   }
 
+  /**
+   * Find user by email with password field included (for authentication)
+   * Note: Password field has select: false, so we need to explicitly select it
+   */
+  async findOneWithPassword(email: string): Promise<User | undefined> {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+      select: [
+        'id',
+        'email',
+        'password',
+        'student_id',
+        'name',
+        'role',
+        'banned',
+        'banned_at',
+        'banned_reason',
+        'created_at',
+        'recruiter_id',
+      ],
+    });
+    return user === null ? undefined : user;
+  }
+
   async findById(id: number): Promise<User | undefined> {
     const user = await this.usersRepository.findOne({ where: { id } });
     return user === null ? undefined : user;

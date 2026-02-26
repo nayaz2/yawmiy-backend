@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
 import { json, urlencoded } from 'express';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -89,8 +90,51 @@ async function bootstrap() {
     }),
   );
 
+  // Swagger API Documentation
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Yawmiy Backend API')
+    .setDescription(
+      'API documentation for Yawmiy - A university marketplace platform for buying and selling items between students.',
+    )
+    .setVersion('1.0')
+    .addTag('auth', 'Authentication endpoints')
+    .addTag('users', 'User management endpoints')
+    .addTag('listings', 'Product listing endpoints')
+    .addTag('orders', 'Order management endpoints')
+    .addTag('messages', 'Messaging system endpoints')
+    .addTag('scouts', 'Scout/referral system endpoints')
+    .addTag('payouts', 'Payout management endpoints')
+    .addTag('admin', 'Admin panel endpoints')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+    )
+    .addServer('http://localhost:3000', 'Development server')
+    .addServer('https://yawmiy-backend.onrender.com', 'Production server')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true, // Keep authorization token after page refresh
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+    customSiteTitle: 'Yawmiy API Documentation',
+    customfavIcon: '/favicon.ico',
+    customCss: '.swagger-ui .topbar { display: none }',
+  });
+
   const port = configService.get('PORT') || 3000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Swagger API Documentation: http://localhost:${port}/api/docs`);
 }
 bootstrap();

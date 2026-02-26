@@ -11,6 +11,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { OrdersService } from './orders.service';
 import { PayoutsService } from '../payouts/payouts.service';
@@ -19,6 +20,7 @@ import { CompleteOrderDto } from './dto/complete-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PayoutType } from '../payouts/payout.entity';
 
+@ApiTags('orders')
 @Controller('orders')
 export class OrdersController {
   constructor(
@@ -26,12 +28,26 @@ export class OrdersController {
     private readonly payoutsService: PayoutsService,
   ) {}
 
-  /**
-   * POST /orders - Create a new order
-   * Requires JWT (buyer must be authenticated)
-   */
-  @UseGuards(JwtAuthGuard)
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Create order',
+    description: 'Create a new order for a listing. Buyer must be authenticated. Returns payment URL for PhonePe.'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Order created successfully',
+    schema: {
+      example: {
+        order_id: 'uuid',
+        payment_url: 'https://mercury-uat.phonepe.com/transact/pg?token=...',
+        status: 'pending'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input or listing not available' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
     return this.ordersService.createOrder(
       createOrderDto.listing_id,
@@ -40,12 +56,8 @@ export class OrdersController {
     );
   }
 
-  /**
-   * GET /orders/callback - PhonePe payment redirect callback
-   * Public endpoint (no authentication required)
-   * PhonePe redirects users here after payment
-   */
   @Get('callback')
+  @ApiExcludeEndpoint() // Exclude from Swagger (PhonePe redirect endpoint)
   async paymentCallback(
     @Query() queryParams: any,
     @Res() res: Response,
@@ -175,8 +187,17 @@ export class OrdersController {
    * GET /orders/:order_id - Get order details
    * Requires JWT (buyer or seller only)
    */
-  @UseGuards(JwtAuthGuard)
   @Get(':order_id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Get order details',
+    description: 'Get detailed information about a specific order. User can view orders where they are buyer or seller.'
+  })
+  @ApiParam({ name: 'order_id', description: 'Order UUID' })
+  @ApiResponse({ status: 200, description: 'Order retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not buyer or seller' })
+  @ApiResponse({ status: 404, description: 'Order not found' })
   async findOne(@Param('order_id') order_id: string, @Request() req) {
     const order = await this.ordersService.findOne(order_id, req.user.userId);
     return {
@@ -188,12 +209,15 @@ export class OrdersController {
     };
   }
 
-  /**
-   * GET /orders - Get all orders for the authenticated user
-   * Requires JWT
-   */
-  @UseGuards(JwtAuthGuard)
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Get user orders',
+    description: 'Get all orders for the authenticated user (both as buyer and seller)'
+  })
+  @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(@Request() req) {
     const orders = await this.ordersService.findUserOrders(req.user.userId);
     return orders.map((order) => ({
@@ -217,11 +241,8 @@ export class OrdersController {
     return this.ordersService.initiatePhonePayment(order_id);
   }
 
-  /**
-   * POST /orders/webhook - PhonePe payment webhook
-   * PhonePe calls this with username/password authentication
-   */
   @Post('webhook')
+  @ApiExcludeEndpoint() // Exclude from Swagger (PhonePe webhook endpoint)
   async handleWebhook(
     @Body() payload: any,
     @Headers('x-verify') signature: string,
@@ -239,12 +260,16 @@ export class OrdersController {
     );
   }
 
-  /**
-   * PATCH /orders/:order_id/complete - Complete an order
-   * Requires JWT (buyer only)
-   */
-  @UseGuards(JwtAuthGuard)
   @Patch(':order_id/complete')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Complete order',
+    description: 'Mark an order as completed. Only the buyer can complete an order. Creates automatic seller payout.'
+  })
+  @ApiParam({ name: 'order_id', description: 'Order UUID' })
+  @ApiResponse({ status: 200, description: 'Order completed successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not the buyer' })
   async complete(
     @Param('order_id') order_id: string,
     @Body() completeOrderDto: CompleteOrderDto,

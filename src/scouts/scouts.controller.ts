@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { ScoutsService } from './scouts.service';
 import { PayoutsService } from '../payouts/payouts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -15,6 +16,7 @@ import { RegisterScoutDto } from './dto/register-scout.dto';
 import { RequestPayoutDto } from './dto/request-payout.dto';
 import { PayoutType } from '../payouts/payout.entity';
 
+@ApiTags('scouts')
 @Controller('scouts')
 export class ScoutsController {
   constructor(
@@ -22,23 +24,39 @@ export class ScoutsController {
     private readonly payoutsService: PayoutsService,
   ) {}
 
-  /**
-   * POST /scouts/register - Register as a scout
-   * Requires JWT (user must be authenticated)
-   * Requires: User must have at least 1 completed transaction
-   */
-  @UseGuards(JwtAuthGuard)
   @Post('register')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Register as scout',
+    description: 'Register the authenticated user as a scout. Requires at least 1 completed transaction (as buyer or seller).'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Successfully registered as scout',
+    schema: {
+      example: {
+        scout_id: 'uuid',
+        message: 'Successfully registered as scout'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'User does not meet requirements' })
+  @ApiResponse({ status: 409, description: 'Already registered as scout' })
   async register(@Body() registerScoutDto: RegisterScoutDto, @Request() req) {
     return this.scoutsService.registerAsScout(req.user.userId);
   }
 
-  /**
-   * GET /scouts/:id/earnings - Get scout earnings with breakdown
-   * Requires JWT (scout can only view their own earnings)
-   */
-  @UseGuards(JwtAuthGuard)
   @Get(':id/earnings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Get scout earnings',
+    description: 'Get detailed earnings breakdown for a scout. Includes total earnings, recruits count, and per-recruit breakdown.'
+  })
+  @ApiParam({ name: 'id', description: 'Scout UUID' })
+  @ApiResponse({ status: 200, description: 'Earnings retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Scout not found' })
   async getEarnings(@Param('id') scout_id: string, @Request() req) {
     // Verify scout belongs to authenticated user
     const earnings = await this.scoutsService.getScoutEarnings(scout_id);
@@ -50,22 +68,29 @@ export class ScoutsController {
     return earnings;
   }
 
-  /**
-   * GET /scouts/leaderboard - Get top scouts by earnings
-   * Public endpoint (no authentication required)
-   */
   @Get('leaderboard')
+  @ApiOperation({ 
+    summary: 'Get leaderboard',
+    description: 'Get top scouts ranked by earnings. Public endpoint (no authentication required).'
+  })
+  @ApiQuery({ name: 'limit', required: false, description: 'Number of top scouts to return', example: 10 })
+  @ApiResponse({ status: 200, description: 'Leaderboard retrieved successfully' })
   async getLeaderboard(@Query('limit') limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 10;
     return this.scoutsService.getLeaderboard(limitNum);
   }
 
-  /**
-   * POST /scouts/:id/request-payout - Request payout
-   * Requires JWT (scout can only request their own payout)
-   */
-  @UseGuards(JwtAuthGuard)
   @Post(':id/request-payout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Request payout',
+    description: 'Request a payout for scout earnings. Payout will be processed on 1st/16th, 2 weeks after transaction. Scout can only request their own payout.'
+  })
+  @ApiParam({ name: 'id', description: 'Scout UUID' })
+  @ApiResponse({ status: 201, description: 'Payout request created' })
+  @ApiResponse({ status: 400, description: 'Invalid amount or exceeds earnings' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not the scout owner' })
   async requestPayout(
     @Param('id') scout_id: string,
     @Body() requestPayoutDto: RequestPayoutDto,
